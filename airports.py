@@ -39,15 +39,16 @@ def tweet_body(all_airports: pd.DataFrame) -> str :
     """
     while True:
         four_airports = all_airports.sample(n=4, ignore_index=True)
-        buff = 'What airport is this?\n\n'
+        buff = 'What airport is this?⤵️\n\n'
+        indices = ["1️⃣", "2️⃣", "3️⃣", "4️⃣",]
         for ind in four_airports.index:
-            buff +=  str(four_airports['iataCode'][ind]) + ', ' + \
-                        str(four_airports[' Airport name'][ind]) + ', ' + \
-                        str(four_airports[' Location'][ind]) + ', ' + \
-                        str(four_airports[' Country'][ind]) + '\n'
+            buff +=  str(indices[ind]) + ' ' + \
+                        str(four_airports['iataCode'][ind]) + ', ' + \
+                        str(four_airports[' Airport name'][ind]) + '\n' # + \
+                        # str(four_airports[' Location'][ind]) + ', ' + \
+                        # str(four_airports[' Country'][ind]) + '\n'
 
         buff = buff.strip()
-
         if len(buff) > 280:
             continue
         else:
@@ -180,7 +181,7 @@ with open('data.csv', encoding="UTF-8") as csvdata:
                     print("Saved screen shot")
 
                     print("Writing tweet")
-                    with open("ze_twit.txt", "w") as twit:
+                    with open("ze_twit.txt", "w", encoding="UTF-8") as twit:
                         twit.write(the_tweet)
                     
                     got_airport = True
