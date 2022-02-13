@@ -4,6 +4,7 @@ import urllib
 import time
 import base64
 import io
+import tempfile
 from selenium.webdriver import Chrome
 from selenium.webdriver import ActionChains
 from selenium.webdriver.chrome.service import Service
@@ -151,7 +152,7 @@ with open('data.csv', encoding="UTF-8") as csvdata:
                     #     EC.element_to_be_clickable((By.CSS_SELECTOR, "button.ujtHqf-zoom-LgbsSe")))
                     # air_driver.execute_script("document.getElementsByClassName('ujtHqf-zoom-LgbsSe.widget-zoom-out').click()")
                     air_driver.execute_script("document.getElementsByClassName('widget-zoom-out')[0].click()")
-                    # air_driver.execute_script("document.getElementsByClassName('widget-zoom-out')[0].click()")
+                    air_driver.execute_script("document.getElementsByClassName('widget-zoom-out')[0].click()")
                     # print(len(zoom_out))
                     # break
                     # airplane_actions.click(zoom_out)
@@ -177,12 +178,50 @@ with open('data.csv', encoding="UTF-8") as csvdata:
                     page_img = page_img.crop(box)
                     # Save the image to airport.png
                     # print("Saving image to airport.png")
-                    page_img.save("ze_airport.png")
-                    print("Saved screen shot")
 
-                    print("Writing tweet")
-                    with open("ze_twit.txt", "w", encoding="UTF-8") as twit:
-                        twit.write(the_tweet)
+
+                    
+                    with tempfile.TemporaryDirectory() as temp_directory:
+                        import pathlib
+
+                        the_dir = pathlib.Path(temp_directory)
+
+                        temp_file = the_dir / 'the_file.png'
+                        page_img.save(temp_file, format='PNG')
+                        import configparser
+                        from selenium.webdriver.common.keys import Keys
+                        config = configparser.ConfigParser()
+
+                        config.read("credentials.ini")
+
+                        twitter_name = config['Credentials']['username']
+                        twitter_pass = config['Credentials']['password']
+                        
+                        air_driver.get('https://twitter.com/i/flow/login')
+                        time.sleep(2)
+
+                        print("Logging in")
+                        WebDriverWait(air_driver, 200).until(EC.element_to_be_clickable((By.XPATH, "//input[@name='text']"))).send_keys(twitter_name)
+                        WebDriverWait(air_driver, 200).until(EC.element_to_be_clickable((By.XPATH, "//input[@name='text']"))).send_keys(Keys.RETURN)
+
+                        WebDriverWait(air_driver, 200).until(EC.element_to_be_clickable((By.XPATH, "//input[@name='password']"))).send_keys(twitter_pass)
+                        WebDriverWait(air_driver, 200).until(EC.element_to_be_clickable((By.XPATH, "//input[@name='password']"))).send_keys(Keys.RETURN)
+                        time.sleep(2)
+
+
+                        print("Twitting")
+                        tweet_text_xpath = '/html/body/div[1]/div/div/div[2]/main/div/div/div/div/div/div[2]/div/div[2]/div[1]/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div/div/div/label/div[1]/div/div/div/div/div[2]/div/div/div/div'
+                        WebDriverWait(air_driver, 200).until(EC.element_to_be_clickable((By.XPATH, tweet_text_xpath))).send_keys(the_tweet)
+
+                        upload_image_xpath = '/html/body/div[1]/div/div/div[2]/main/div/div/div/div/div/div[2]/div/div[2]/div[1]/div/div/div/div[2]/div[3]/div/div/div[1]/input'
+                        WebDriverWait(air_driver, 200).until(EC.presence_of_element_located((By.XPATH, upload_image_xpath))).send_keys(str(temp_file))
+                        time.sleep(20)
+
+                        tweet_submit_xpath = '//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div/div/div[2]/div/div[2]/div[1]/div/div/div/div[2]/div[3]/div/div/div[2]/div[3]'
+                        WebDriverWait(air_driver, 200).until(EC.element_to_be_clickable((By.XPATH, tweet_submit_xpath))).click()
+                        time.sleep(2)
+                        
+                        
                     
                     got_airport = True
 
